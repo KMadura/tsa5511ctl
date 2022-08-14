@@ -1,4 +1,4 @@
-#A note about specific transmitter
+# A note about specific transmitter
 
 Pins on a socket in turkish TSA5511 PLL based transmitter which can be found on aliexpress. I won't give you a link to this offer for obvious reasons, but you can find it easily on aliexpress.
 
@@ -25,7 +25,7 @@ If you remove default 5V voltage regulator, you can still power up lower voltage
 
 -----
 
-#Notice! This is my "sketchbook", whatever info you find here could be invalid
+# Notice! This is my "sketchbook", whatever info you find here could be invalid
 
 Good resources:
 * [An extensive topic about controlling TSA5511 over I2C](https://community.particle.io/t/solved-interface-with-i2c-bus-controlled-synthesizer-tsa5511/28758/9)
