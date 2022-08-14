@@ -1,5 +1,3 @@
-#define PCRE2_CODE_UNIT_WIDTH 8
-
 #include <stdio.h>
 #include <regex.h>
 #include <string.h>
@@ -10,8 +8,8 @@
 #include <unistd.h>
 #include "linux/i2c-dev.h"
 
-int mainSet(char* frequencyString, char* deviceString);
-int mainGet(char* optionString, char* deviceString);
+int mainSet(char* frequencyString);
+int mainGet(char* optionString);
 
 int device;
 
@@ -81,15 +79,6 @@ long frequencyConversion(char* freq) {
 }
 
 /*
- * Mode detection functions
- */
-
-bool isGetMode(const char *argument) {
-    if (argument[0] == 'g' && argument[1] == 'e' && argument[2] == 't') return true;
-    return false;
-}
-
-/*
  * TSA5511 communication functions
  */
 
@@ -132,14 +121,27 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    if (isGetMode(argv[1])) {
-        return mainGet(argv[2], argv[3]);
+    device = open(argv[3], O_RDWR);
+    if (device < 0) {
+        printf("Could not open a device\n");
+        return 1;
     }
 
-    return mainSet(argv[2], argv[3]);
+    int address = 0x61;
+
+    if (ioctl(device, I2C_SLAVE, address) < 0) {
+        printf("Could not communicate with a device\n");
+        return 1;
+    }
+
+    if (strcmp(argv[1], "get") == 0) {
+        return mainGet(argv[2]);
+    }
+
+    return mainSet(argv[2]);
 }
 
-int mainSet(char* frequencyString, char* deviceString) {
+int mainSet(char* frequencyString) {
     if (!validateFrequencyString(frequencyString)) {
         printf("Only frequencies within 65.0-108.0 are allowed\n");
         return 1;
@@ -148,19 +150,6 @@ int mainSet(char* frequencyString, char* deviceString) {
     long frequency = frequencyConversion(frequencyString);
     if (frequency < 1300 || frequency > 2160) {
         printf("Only frequencies within 65.0-108.0 are allowed (2)\n");
-        return 1;
-    }
-
-    device = open(deviceString, O_RDWR);
-    if (device < 0) {
-        printf("Could not open a device\n");
-        return 1;
-    }
-
-    int address = 0x61; // Why is it 0x61?
-
-    if (ioctl(device, I2C_SLAVE, address) < 0) {
-        printf("Could not communicate with a device\n");
         return 1;
     }
 
@@ -181,7 +170,12 @@ int mainSet(char* frequencyString, char* deviceString) {
     return 0;
 }
 
-int mainGet(char* optionString, char* deviceString) {
-    printf("get mode is not implemented yet\n");
+int mainGet(char* optionString) {
+    if (strcmp(optionString, "lock") == 0) {
+        printf("TODO: Asking if PLL is locked");
+        return 0;
+    }
+
+    printf("Please use one of available options:\n - lock\n - todo: others to implement\n");
     return 1;
 }
