@@ -12,8 +12,8 @@
 
 // My includes
 #include "daemonize.c"
+#include "config.c"
 #include "main.h"
-#include "config.h"
 
 /*
  * Validation functions
@@ -118,11 +118,21 @@ bool initial_i2c_communication() {
     return 1;
 }
 
+void print_usage() {
+    printf("Usage:\ntsa5511ctl set currentFrequency device\ntsa5511ctl get parameter device\ntsa5511ctl daemon device\n");
+}
+
 /*
  * Main logic
  */
 
 int main(int argc, char** argv) {
+    loadConfig();
+
+    printf("Host: %s\n", configParams.host);
+    printf("Port: %s\n", configParams.port);
+    printf("Device: %s\n", configParams.device);
+
     if (argc != 4) {
         if (argc == 3 && strcmp(argv[1], "daemon") == 0) {
 
@@ -135,7 +145,7 @@ int main(int argc, char** argv) {
             return mainDaemon();
         }
 
-        printf("Usage:\nprogram_name set currentFrequency device\nprogram_name get parameter device\nprogram_name daemon device");
+        print_usage();
         return 1;
     }
 

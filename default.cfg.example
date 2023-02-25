@@ -1,0 +1,8 @@
+#
+# Config file syntax:
+# key: value
+#
+
+host: localhost
+port: 555
+device: /dev/i2c-1

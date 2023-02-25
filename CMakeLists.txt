@@ -7,4 +7,4 @@ project(rpiTsa5511Control C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(rpiTsa5511Control main.c)
+add_executable(tsa5511ctl main.c)

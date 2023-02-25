@@ -18,7 +18,7 @@ Well, there are a few options.
 
 - Dummy load - Dummy load is usually a resistor or group of resistors enclosed within a radiator to dissipate heat. 
 Dummy load is not an antenna, but to the transmitter acts like one. RF signal leakage may be strong enough to cover your room with a signal.
-I strongly encourage you to buy one if you are working on any transmitter (not just FM).
+I strongly encourage you to buy one if you are working on any transmitter.
 - Legal unlicensed broadcasting:
   - In some countries it is legal to use low power FM transmitters, usually to feed your car radio with music from your phone or mp3 player.
   Please check local regulations for maximum allowed radiated power and if DIY setups are tolerable.
@@ -34,4 +34,4 @@ I strongly encourage you to buy one if you are working on any transmitter (not j
   This also creates an opportunity to promote your internet radio station. Such events could be sports events, holidays, temporary car cinemas, etc.
 - Ham radio - If previous options are not interesting and you have a ham radio license, you may be interested in building a ham radio beacon or some automated station.
 
-If you still have a balls to run pirate broadcast and risk being busted by a local authorities. **Please!** Please, make sure your transmitter does not generate **ANY** interferences at all. Any interferences to any other FM broadcasts, any interferences inside airband (108-137MHz), other frequency bands and is not interfering with devices in surrounding area.
+If you still have balls to run pirate broadcast and risk being caught by a local authorities. **Please!** Please, make sure your transmitter does not generate **ANY** interferences at all. Any interferences to any other FM broadcasts, any interferences inside airband (108-137MHz), other frequency bands and is not interfering with devices in surrounding area.
