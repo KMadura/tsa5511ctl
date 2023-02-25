@@ -31,6 +31,7 @@ Good resources:
 * [An extensive topic about controlling TSA5511 over I2C](https://community.particle.io/t/solved-interface-with-i2c-bus-controlled-synthesizer-tsa5511/28758/9)
 * [Charge-pump phase-locked loop](https://en.wikipedia.org/wiki/Charge-pump_phase-locked_loop)
 * [TSA5511 datasheet](https://www.alldatasheet.com/view.jsp?Searchword=Tsa5511&gclid=Cj0KCQjwuuKXBhCRARIsAC-gM0hPR67Z6SkxgDTyoDk8LCdsMDjsFwTYhfbmwI7LMT_KTnSdbhyZxxYaApUlEALw_wcB)
+* [TSA5511 project on pira.cz with ASM code available](https://pira.cz/entx4.htm)
 
 We should send five bytes when we want to send controls  
 1. Address

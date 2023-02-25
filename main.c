@@ -1,3 +1,4 @@
+// External includes
 #include <stdio.h>
 #include <regex.h>
 #include <string.h>
@@ -7,11 +8,12 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include "linux/i2c-dev.h"
+#include <syslog.h>
 
-int mainSet(char* frequencyString);
-int mainGet(char* optionString);
-
-int device;
+// My includes
+#include "daemonize.c"
+#include "main.h"
+#include "config.h"
 
 /*
  * Validation functions
@@ -78,27 +80,42 @@ long frequencyConversion(char* freq) {
     }
 }
 
+bool checkIfPowerOn() {
+    char* data = malloc(1);
+    data[0] = 0x60;
+
+    return (read(device, data, 1) & 0b10000000) > 0;
+}
+
 /*
  * TSA5511 communication functions
  */
 
 bool tsaInitialize() {
     char* data = malloc(2);
-    data[0] = 0xCE;
-    data[1] = 0x00;
+    data[0] = 0x00;
+    data[1] = 0x10;
 
     return (write(device, data, 2) == 2);
 }
 
 bool tsaSetFrequency(long frequency) {
-    char* data = malloc(5);
-    data[0] = 0xC2;
-    data[1] = (frequency & 0xFF00) >> 8;
-    data[2] = frequency & 0x00FF;
-    data[3] = 0x8E;
-    data[4] = 0x00;
+    char* data = malloc(2);
+    data[0] = (frequency & 0xFF00) >> 8;
+    data[1] = frequency & 0x00FF;
 
-    return (write(device, data, 5) == 5);
+    return (write(device, data, 2) == 2);
+}
+
+bool initial_i2c_communication() {
+    int address = 0x61;
+
+    if (ioctl(device, I2C_SLAVE, address) < 0) {
+        printf("Could not communicate with a device\n");
+        return 0;
+    }
+
+    return 1;
 }
 
 /*
@@ -107,7 +124,18 @@ bool tsaSetFrequency(long frequency) {
 
 int main(int argc, char** argv) {
     if (argc != 4) {
-        printf("Usage:\nprogram_name set currentFrequency device\nprogram_name get parameter device\n");
+        if (argc == 3 && strcmp(argv[1], "daemon") == 0) {
+
+            device = open(argv[2], O_RDWR);
+            if (device < 0) {
+                printf("Could not open a device\n");
+                return 1;
+            }
+
+            return mainDaemon();
+        }
+
+        printf("Usage:\nprogram_name set currentFrequency device\nprogram_name get parameter device\nprogram_name daemon device");
         return 1;
     }
 
@@ -127,21 +155,19 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    int address = 0x61;
+    if (strcmp(argv[1], "set") == 0) {
+        return mainSet(argv[2]);
+    }
 
-    if (ioctl(device, I2C_SLAVE, address) < 0) {
+    return mainGet(argv[2]);
+}
+
+int mainSet(char* frequencyString) {
+    if (!initial_i2c_communication()) {
         printf("Could not communicate with a device\n");
         return 1;
     }
 
-    if (strcmp(argv[1], "get") == 0) {
-        return mainGet(argv[2]);
-    }
-
-    return mainSet(argv[2]);
-}
-
-int mainSet(char* frequencyString) {
     if (!validateFrequencyString(frequencyString)) {
         printf("Only frequencies within 65.0-108.0 are allowed\n");
         return 1;
@@ -158,7 +184,7 @@ int mainSet(char* frequencyString) {
         return 1;
     }
 
-    usleep(20000); // 20ms
+    usleep(10000); // 10ms
 
     if (!tsaSetFrequency(frequency)) {
         printf("Failed to set TSA5511 currentFrequency\n");
@@ -171,11 +197,37 @@ int mainSet(char* frequencyString) {
 }
 
 int mainGet(char* optionString) {
+    if (!initial_i2c_communication()) {
+        printf("Could not communicate with a device\n");
+        return 1;
+    }
+
     if (strcmp(optionString, "lock") == 0) {
-        printf("TODO: Asking if PLL is locked");
+        printf("TODO: Asking if PLL is locked\n");
         return 0;
     }
 
     printf("Please use one of available options:\n - lock\n - todo: others to implement\n");
     return 1;
+}
+
+int mainDaemon() {
+    skeleton_daemon();
+    if (initial_i2c_communication()) {
+        printf("Could not communicate with a device\n");
+        return 1;
+    }
+
+    while(1) {
+        // TODO: Implement networking
+
+        syslog( LOG_NOTICE, "rpiTsa5511Control is now running");
+        sleep(20);
+        //break;
+    }
+
+    syslog (LOG_NOTICE, "rpiTsa5511Control is terminated");
+    closelog();
+
+    return EXIT_SUCCESS;
 }
