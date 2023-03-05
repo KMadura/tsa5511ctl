@@ -14,7 +14,6 @@
 // My includes
 #include "daemonize.c"
 #include "config.c"
-#include "loop.c"
 #include "network_process.c"
 #include "control_process.c"
 #include "main.h"
