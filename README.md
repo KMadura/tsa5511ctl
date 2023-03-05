@@ -1,4 +1,4 @@
-# rpiTsa5511Control
+# tsa5511ctl
 Simple CLI program to control TSA5511 chip from Raspberry Pi.
 
 ## WORK IN PROGRESS
