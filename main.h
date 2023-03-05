@@ -9,3 +9,4 @@ int mainDaemon();
 
 // Main variables
 int device;
+char device_name[128];

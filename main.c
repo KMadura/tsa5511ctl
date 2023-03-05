@@ -9,10 +9,14 @@
 #include <unistd.h>
 #include "linux/i2c-dev.h"
 #include <syslog.h>
+#include <pthread.h>
 
 // My includes
 #include "daemonize.c"
 #include "config.c"
+#include "loop.c"
+#include "network_process.c"
+#include "control_process.c"
 #include "main.h"
 
 /*
@@ -108,6 +112,12 @@ bool tsaSetFrequency(long frequency) {
 }
 
 bool initial_i2c_communication() {
+    device = open(configParams.device, O_RDWR);
+    if (device < 0) {
+        printf("Could not open a device\n");
+        return 1;
+    }
+
     int address = 0x61;
 
     if (ioctl(device, I2C_SLAVE, address) < 0) {
@@ -119,7 +129,12 @@ bool initial_i2c_communication() {
 }
 
 void print_usage() {
-    printf("Usage:\ntsa5511ctl set currentFrequency device\ntsa5511ctl get parameter device\ntsa5511ctl daemon device\n");
+    printf(
+        "Usage:\n"
+        "tsa5511ctl set currentFrequency device\n"
+        "tsa5511ctl get parameter device\n"
+        "tsa5511ctl daemon device\n"
+    );
 }
 
 /*
@@ -135,13 +150,6 @@ int main(int argc, char** argv) {
 
     if (argc != 4) {
         if (argc == 3 && strcmp(argv[1], "daemon") == 0) {
-
-            device = open(argv[2], O_RDWR);
-            if (device < 0) {
-                printf("Could not open a device\n");
-                return 1;
-            }
-
             return mainDaemon();
         }
 
@@ -159,11 +167,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    device = open(argv[3], O_RDWR);
-    if (device < 0) {
-        printf("Could not open a device\n");
-        return 1;
-    }
+    strcpy(configParams.device, argv[3]);
 
     if (strcmp(argv[1], "set") == 0) {
         return mainSet(argv[2]);
@@ -223,21 +227,28 @@ int mainGet(char* optionString) {
 
 int mainDaemon() {
     skeleton_daemon();
-    if (initial_i2c_communication()) {
-        printf("Could not communicate with a device\n");
-        return 1;
+
+    if (!initial_i2c_communication()) {
+        syslog(LOG_CRIT, "Could not communicate with a device, exiting");
+        exit(1);
     }
 
-    while(1) {
-        // TODO: Implement networking
+    pthread_t net_pthread, mon_pthread;
+    int net_iret, mon_iret;
 
-        syslog( LOG_NOTICE, "rpiTsa5511Control is now running");
-        sleep(20);
-        //break;
-    }
+    /* TSA5511 monitoring thread */
+    mon_iret = pthread_create(&mon_pthread, NULL, start_monitoring_process, NULL);
+
+    /* UDP communication thread */
+    net_iret = pthread_create(&net_pthread, NULL, start_networking_process, NULL);
+
+    syslog( LOG_NOTICE, "rpiTsa5511Control is now running");
+
+    pthread_join(mon_pthread, NULL);
+    pthread_join(net_pthread, NULL);
 
     syslog (LOG_NOTICE, "rpiTsa5511Control is terminated");
     closelog();
 
-    return EXIT_SUCCESS;
+    exit(0);
 }
